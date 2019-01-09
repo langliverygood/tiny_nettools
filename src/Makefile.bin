@@ -1,0 +1,29 @@
+include $(TOP_DIR)/Makefile.env
+
+SRCS := $(wildcard *.c)
+OBJS := $(TOP_DIR)/$(OBJ_DIR)/$(patsubst %.c, %.o,$(SRCS))
+
+SUB_DIR = $(shell ls -l ../|grep ^d |awk '{print $$9}')
+
+INC_DIR = $(addprefix -I../,$(SUB_DIR))
+INCS = $(foreach dir, $(INC_DIR), $(dir))
+
+INCS += -I../../include
+
+all: $(OBJS)
+
+%.o:%.c
+	$(CC) -o $@ -c $< $(CFLAGS) $(INCS)
+	@mv $@ $(TOP_DIR)/$(OBJ_DIR)
+	
+%.d:%.c
+	@set -e; rm -f $@; $(CC) -MM $< $(INCS) > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@;\
+	rm -f $@.$$$$;
+	mv -f $@ $(TOP_DIR)/$(DEP_DIR)
+
+#DEPS := $(wildcard $(TOP_DIR)/$(DEP_DIR)/*.d)
+$(warning $(OBJS))
+#include $(DEPS)
+
+.PHONY: all
