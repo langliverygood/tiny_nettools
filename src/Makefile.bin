@@ -1,28 +1,22 @@
 include $(TOP_DIR)/Makefile.env
 
 SRCS := $(wildcard *.c)
-OBJS := $(TOP_DIR)/$(OBJ_DIR)/$(patsubst %.c,%.o,$(SRCS))
-DEPS := $(patsubst %.c, %.d,$(SRCS))
+OBJS := $(patsubst %.c,%.o,$(SRCS))
+DEPS := $(patsubst %.c,%.d,$(SRCS))
 SUB_DIR = $(shell ls -l ../|grep ^d |awk '{print $$9}')
 
 INC_DIR = $(addprefix -I../,$(SUB_DIR))
 INCS = $(foreach dir, $(INC_DIR), $(dir))
 INCS += -I../../include
 
-all: $(DEPS) $(OBJS)
-
 CMD := $(CC) -c $< $(CFLAGS) $(INCS)
 
-%.d:%.c
-	@rm -f $@;\
-	$(CC) -MM $(INCS) $< > $@;\
-	echo "\t"$(CMD)" "$< >> $@;\
-	echo "\t@mv $(patsubst %.d, %.o,$@) $(TOP_DIR)/$(OBJ_DIR);\\" >> $@;\
-	echo "\trm -f $@" >> $@;
+all: $(DEPS)
 
-$(TOP_DIR)/$(OBJ_DIR)/%.o:%.c $(DEPS)
-	$(CC) -c $< -o $@ $(INCS)
-	
--include $(DEPS)
-
-.PHONY: all
+%.d : %.c
+	@set -e; rm -f $@; $(CC) -MM $< $(INCS) > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,$(TOP_DIR)/$(OBJ_DIR)/\1.o :,g' < $@.$$$$ > $@; \
+	echo "\t"$(CMD)" "$< >> $@; \
+	echo "\t@mv $(patsubst %.d, %.o,$@) $(TOP_DIR)/$(OBJ_DIR);\\" >> $@; \
+	$(MAKE) -f $@; \
+	rm -f $@ $@.$$$$

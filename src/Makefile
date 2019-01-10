@@ -1,7 +1,5 @@
 -include ../Makefile.env
 
-TOP_DIR = ..
-
 SUBDIRS = $(shell ls -l| grep ^d |awk '{print $$9}' )
 
 all:subdirs
