@@ -1,17 +1,19 @@
+#引用全局变量
 -include Makefile.env
-
-SUBDIRS = src
+#编译的最终目标
 TARGET = tiny_nettools
+#需要编译的文件夹
+COMPILE_DIR = src
 
 all: subdirs $(TARGET)
- 
-subdirs: $(SUBDIRS)
+
+#检查文件夹是否存在，若不存在则创建。执行每个需要编译的文件夹中的makefile
+subdirs: $(COMPILE_DIR)
 	@if [ ! -d $(BUILD_DIR) ]; then mkdir -p $(BUILD_DIR); fi;\
 	if [ ! -d $(OBJ_DIR) ]; then mkdir -p $(OBJ_DIR); fi;\
-	for dir in $(SUBDIRS);do $(MAKE) -C $$dir all||exit 1;done
+	for dir in $(COMPILE_DIR);do $(MAKE) -C $$dir all||exit 1;done
 
-$(foreach dir, $(INC_DIR), $(dir))
-	
+#链接obj所有的.o 文件
 $(TARGET): $(OBJS)
 	$(CC) -o $(BUILD_DIR)/$(TARGET) $(OBJS) -L$(LIB_DIR) $(LFLAGS)
 
