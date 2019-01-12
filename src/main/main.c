@@ -8,12 +8,15 @@ static pthread_t sniffer_td;
 
 void *thread_sniffer()
 {
-	printf_sniffer();
+	if(sniffer_init() == 0)
+	{
+		sniffer_start();
+	}
 	
 	return NULL;
 }
 
-void func_sniffer(int argc, char **argv)
+void func_start_sniffer(int argc, char **argv)
 {
 	int ret;
 	
@@ -25,7 +28,12 @@ void func_sniffer(int argc, char **argv)
 		return;
 	}
 	
-	pthread_join(sniffer_td, NULL);
+	return;
+}
+
+void func_stop_sniffer(int argc, char **argv)
+{
+	pthread_cancel(sniffer_td);
 	
 	return;
 }
@@ -51,11 +59,10 @@ int main(int argc, char **argv)
 	lshell_init();
 	lshell_set_promt("ex");
 	lshell_set_errmsg_swtich(1);
-	ret = lshell_register(-1, "ls", "ls", test_ls);
-	//lshell_register(ret, "cd", "cd", test_cd);
-	lshell_register(-1, "sniffer", "sniffer", func_sniffer);
+	lshell_register(-1, "ls", "ls", test_ls);
+	ret = lshell_register(-1, "sniffer", "sniffer", func_start_sniffer);
+	lshell_register(ret, "stop", "sniffer stop", func_stop_sniffer);
 	lshell_start();
-	
-	printf("%d\n", ret);	
+		
 	return 0;		
 }

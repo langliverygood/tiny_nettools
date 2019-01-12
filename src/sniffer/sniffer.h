@@ -1,8 +1,9 @@
 #ifndef _SNIFFER_H_
 #define _SNIFFER_H_
 
-#define INT_P 110
+#define BUFFER_MAX 2048
 
-void printf_sniffer();
+char sniffer_init();
+void sniffer_start();
 
 #endif
