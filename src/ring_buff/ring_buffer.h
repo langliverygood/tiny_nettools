@@ -17,5 +17,6 @@ char rb_can_read(ring_buffer_p rb_p);
 void rb_read_out(ring_buffer_p rb_p);
 char *get_write_address(ring_buffer_p rb_p);
 char *get_read_address(ring_buffer_p rb_p);
+void rb_delete(ring_buffer_p rb_p);
 
 #endif

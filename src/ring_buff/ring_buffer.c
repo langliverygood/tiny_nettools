@@ -67,3 +67,10 @@ char *get_read_address(ring_buffer_p rb_p)
 	
 	return p;
 }
+
+void rb_delete(ring_buffer_p rb_p)
+{
+	free(rb_p);
+	
+	return;
+}

@@ -4,28 +4,11 @@
 #include "lshell.h"
 #include "sniffer.h"
 
-static pthread_t sniffer_td;
-
-void *thread_sniffer()
+void func_start_sniffer(int argc, char **argv)
 {
 	if(sniffer_init() == 0)
 	{
 		sniffer_start();
-	}
-	
-	return NULL;
-}
-
-void func_start_sniffer(int argc, char **argv)
-{
-	int ret;
-	
-	ret = pthread_create(&sniffer_td, NULL, thread_sniffer, NULL);
-	
-	if(ret != 0)
-	{
-		printf("Sniffer thread failed to start!\n");
-		return;
 	}
 	
 	return;
@@ -33,7 +16,7 @@ void func_start_sniffer(int argc, char **argv)
 
 void func_stop_sniffer(int argc, char **argv)
 {
-	pthread_cancel(sniffer_td);
+	sniffer_stop();
 	
 	return;
 }
