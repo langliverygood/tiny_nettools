@@ -19,6 +19,13 @@ static char file_name[128];
 static struct pcap_file_header pcap_h;
 static struct packete_header packet_h;
 
+/***************************************************************/
+/**函  数：sniffer_init *****************************************/
+/* 说  明：初始化 sniffer ****************************************/
+/* 参  数：无 ***************************************************/
+/* 返回值：0 初始化成功********************************************/
+/*      ：1 初始化失败********************************************/
+/***************************************************************/
 char sniffer_init()
 {
 	if((sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP))) < 0)
@@ -38,6 +45,12 @@ char sniffer_init()
 	return 0;
 }
 
+/***************************************************************/
+/**函  数：thread_sniffer_write_pcap ****************************/
+/* 说  明：该线程函数从ring_buffer中读出数据并写入pacp文件中 ****/
+/* 参  数：无 ***************************************************/
+/* 返回值：NULL *************************************************/
+/***************************************************************/
 static void *thread_sniffer_write_pcap()
 {
 	int pcap_num, packet_num, cnt, len;
@@ -50,7 +63,7 @@ static void *thread_sniffer_write_pcap()
     pcap_num = PACP_MAX_NUM + 1;
     while(1)
     {
-		if(pcap_num >= PACP_MAX_NUM)
+		if(pcap_num >= PACP_MAX_NUM) // 保证每个文件夹最多有PACP_MAX_NUM个pcap文件
 		{
 			pcap_num = 0;
 			packet_num = PACKET_MAX_NUM + 1;
@@ -60,7 +73,7 @@ static void *thread_sniffer_write_pcap()
 			strftime(file_name_tmp, sizeof(file_name_tmp), "%Y-%m-%d-%H-%M-%S", tm1);
 		}
 		
-		if(packet_num >= PACKET_MAX_NUM)
+		if(packet_num >= PACKET_MAX_NUM) // 保证pcap文件最多有PACKET_MAX_NUM个包
 		{
 			sprintf(file_name, "%s/%s--%d.pcap", file_name_tmp, file_name_tmp, pcap_num);
 			if(create_pcap_file(file_name, pcap_h) != 0)
@@ -93,7 +106,7 @@ static void *thread_sniffer_write_pcap()
 			{
 				cnt++;
 			}
-			if(cnt >= 5)
+			if(cnt >= 5)// 若长期不可读，则该线程休眠1s
 			{
 				sleep(1);
 				cnt = 0;
@@ -105,6 +118,12 @@ static void *thread_sniffer_write_pcap()
 	return NULL;
 }
 
+/***************************************************************/
+/**函  数：thread_sniffer() *************************************/
+/* 说  明：该线程函数将sniffer捕捉的数据经过简单处理，写入ring_buffer */
+/* 参  数：无 ***************************************************/
+/* 返回值：NULL *************************************************/
+/***************************************************************/
 static void *thread_sniffer()
 {
 	int n_read;        
@@ -125,20 +144,26 @@ static void *thread_sniffer()
 		
 		if(rb_can_write(rb_p))
 		{
-			write_ptr = get_write_address(rb_p);
+			write_ptr = get_write_address(rb_p); // 得到待写入的空间地址
 			packet_h.timestamp_high = tv.tv_sec;
 			packet_h.timestamp_low = tv.tv_usec;
 			packet_h.caplen = n_read;
 			packet_h.len = n_read;
-			memcpy(write_ptr, &packet_h, sizeof(packet_h));
-			memcpy(write_ptr + sizeof(packet_h), buffer, n_read);
-			rb_write_in(rb_p);
+			memcpy(write_ptr, &packet_h, sizeof(packet_h)); // 写入packet头部
+			memcpy(write_ptr + sizeof(packet_h), buffer, n_read); // 写入捕捉的数据包
+			rb_write_in(rb_p); // 移动写指针
 		}
 	}
 	
 	return NULL;
 }
 
+/***************************************************************/
+/**函  数：sniffer_start() **************************************/
+/* 说  明：启动sniffer，新建两个线程 *******************************/
+/* 参  数：无 ***************************************************/
+/* 返回值：无 ****************************************************/
+/***************************************************************/
 void sniffer_start()
 {
 	rb_create(RING_BUFFER_SIZE, BUFFER_MAX, &rb_p);
@@ -157,11 +182,17 @@ void sniffer_start()
 	return;
 }
 
+/***************************************************************/
+/**函  数：sniffer_stop() **************************************/
+/* 说  明：关闭sniffer，中止两个线程 *******************************/
+/* 参  数：无 ***************************************************/
+/* 返回值：无 ****************************************************/
+/***************************************************************/
 void sniffer_stop()
 {
 	pthread_cancel(sniffer_td);
 	pthread_cancel(sniffer_write_pcap_td);
-	rb_delete(rb_p);
+	rb_delete(&rb_p);
 	close(sock);
 	
 	return;
