@@ -40,11 +40,11 @@ int main(int argc, char **argv)
 	int ret;
 	
 	lshell_init();
-	lshell_set_promt("ex");
+	lshell_set_promt("tiny_nettools");
 	lshell_set_errmsg_swtich(1);
-	lshell_register(-1, "ls", "ls", test_ls);
-	ret = lshell_register(-1, "sniffer", "sniffer", func_start_sniffer);
-	lshell_register(ret, "stop", "sniffer stop", func_stop_sniffer);
+	lshell_register(-1, "ls", "ls", test_ls, RUN_AT_NEW_THREAD);
+	ret = lshell_register(-1, "sniffer", "sniffer", func_start_sniffer, RUN_AT_NEW_THREAD);
+	lshell_register(ret, "stop", "sniffer stop", func_stop_sniffer, RUN_AT_NEW_THREAD);
 	lshell_start();
 		
 	return 0;		

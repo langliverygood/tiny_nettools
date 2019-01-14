@@ -12,8 +12,11 @@
 #include "write_pcap.h"
 #include "sniffer.h"
 
-static pthread_t sniffer_write_pcap_td, sniffer_td;
-static int sock;
+static pthread_t sniffer_write_pcap_td, sniffer_td; /* 程标识符 */
+static char sniffer_write_pcap_td_exist;            /* 标记，写pcap文件线程是否存在 */
+static char sniffer_td_exist; 			            /* 标记，sniffer线程是否存在 */
+static int sock;                                    /* 标记，socket是否建立 */
+static char sock_exsit;
 static ring_buffer_p rb_p;
 static char file_name[128];
 static struct pcap_file_header pcap_h;
@@ -28,10 +31,15 @@ static struct packete_header packet_h;
 /***************************************************************/
 char sniffer_init()
 {
-	if((sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP))) < 0)
+	if(!sock_exsit)
 	{
-		fprintf(stdout, "Create socket error, please try to run as an administrator\n");
-		return 1;
+		sock_exsit = 1;
+		if((sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP))) < 0)
+		{
+			sock_exsit = 0;
+			fprintf(stdout, "Create socket error, please try to run as an administrator\n");
+			return 1;
+		}
 	}
 	
 	pcap_h.magic = 0xa1b2c3d4;
@@ -60,6 +68,10 @@ static void *thread_sniffer_write_pcap()
 	struct tm *tm1;
     time_t secs;
     
+    pthread_detach(pthread_self()); 						  /* 设置线程的分离状态 */
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);      /* 设置线程可被其他线程cansel */
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); /* 设置线程收到cansel信号时立刻退出 */
+
     pcap_num = PACP_MAX_NUM + 1;
     while(1)
     {
@@ -130,6 +142,10 @@ static void *thread_sniffer()
 	char buffer[BUFFER_MAX];
 	char *write_ptr;
 	struct timeval tv;
+
+	pthread_detach(pthread_self()); 						  /* 设置线程的分离状态 */
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);      /* 设置线程可被其他线程cansel */
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); /* 设置线程收到cansel信号时立刻退出 */
 	
 	while(1) 
 	{
@@ -166,19 +182,36 @@ static void *thread_sniffer()
 /***************************************************************/
 void sniffer_start()
 {
-	rb_create(RING_BUFFER_SIZE, BUFFER_MAX, &rb_p);
-	
-	if(pthread_create(&sniffer_td, NULL, thread_sniffer, NULL) != 0)
+	if(rb_p == NULL)
 	{
-		printf("sniffer thread failed to start!\n");
-		return;
+		rb_create(RING_BUFFER_SIZE, BUFFER_MAX, &rb_p);
 	}
-	if(pthread_create(&sniffer_write_pcap_td, NULL, thread_sniffer_write_pcap, NULL) != 0)
+
+	if(sniffer_td_exist == 0)
 	{
-		printf("Write_pcap thread failed to start!\n");
-		return;
+		sniffer_td_exist = 1;
+		if(pthread_create(&sniffer_td, NULL, thread_sniffer, NULL) != 0)
+		{
+			sniffer_td_exist = 0;
+			printf("sniffer thread failed to start!\n");
+			return;
+		}
 	}
 	
+	if(sniffer_write_pcap_td_exist == 0)
+	{
+		sniffer_write_pcap_td_exist = 1;
+		if(pthread_create(&sniffer_write_pcap_td, NULL, thread_sniffer_write_pcap, NULL) != 0)
+		{
+			sniffer_write_pcap_td_exist = 0;
+			printf("Write_pcap thread failed to start!\n");
+			return;
+		}
+	}
+	
+	pthread_join(sniffer_td, NULL);
+	pthread_join(sniffer_write_pcap_td, NULL);
+
 	return;
 }
 
@@ -190,10 +223,25 @@ void sniffer_start()
 /***************************************************************/
 void sniffer_stop()
 {
-	pthread_cancel(sniffer_td);
-	pthread_cancel(sniffer_write_pcap_td);
-	rb_delete(&rb_p);
-	close(sock);
-	
+	if(sniffer_td_exist)
+	{
+		pthread_cancel(sniffer_td);
+	}
+	if(sniffer_write_pcap_td_exist)
+	{
+		pthread_cancel(sniffer_write_pcap_td);
+	}
+	sniffer_td_exist = 0;
+	sniffer_write_pcap_td_exist = 0;
+	if(rb_p != NULL)
+	{
+		rb_delete(&rb_p);
+	}
+	if(sock_exsit)
+	{
+		sock_exsit = 0;
+		close(sock);
+	}
+		
 	return;
 }

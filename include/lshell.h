@@ -1,6 +1,9 @@
 #ifndef _LSHELL_H_
 #define _LSHELL_H_
 
+#define RUN_AT_NEW_THREAD  0 /* 在新线程中执行命令 */
+#define RUN_AT_MAIN_THREAD 1 /* 在主线程中执行命令 */
+
 /* 说明：lshell初始化 */
 void lshell_init();
 
@@ -18,7 +21,7 @@ void lshell_set_errmsg_swtich(int flag);
 /* 参数：tip 命令的说明 */
 /* 参数：func 函数指针 */
 /* 返回值：该命令的id，若出错则返回-1 */
-int lshell_register(int parent, const char *cmd, const char *tip, void (* func)(int argc, char **argv));
+int lshell_register(int parent, const char *cmd, const char *tip, void (* func)(int argc, char **argv), int mode);
 
 /* 说明：lshell启动 */
 void lshell_start();
