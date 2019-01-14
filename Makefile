@@ -20,6 +20,8 @@ $(TARGET): $(OBJS)
 OBJS = $(wildcard $(OBJ_DIR)/*.o)
 
 clean:
+	@find . -name '*.d.*' -type f -print -exec rm -rf {} \;
+	@find . -name '*.d' -type f -print -exec rm -rf {} \;
 	rm -rf $(OBJ_DIR)/*.o
 	rm -rf $(BUILD_DIR)/$(TARGET)
 
