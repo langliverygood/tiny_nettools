@@ -34,7 +34,7 @@ char sniffer_init()
 	if(!sock_exsit)
 	{
 		sock_exsit = 1;
-		if((sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP))) < 0)
+		if((sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0)
 		{
 			sock_exsit = 0;
 			fprintf(stdout, "Create socket error, please try to run as an administrator\n");
