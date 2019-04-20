@@ -1,14 +1,10 @@
-#ifndef _ARP_DECEIVE_H_
-#define _ARP_DECEIVE_H_
+#ifndef _ARP_H_
+#define _ARP_H_
 
-#define MAC_LEN              6
-#define IP_LEN               4
-#define ETHER_ARP_PACKET_LEN 42
-#define ETHER_HEADER_LEN     14
-
-#define ARP_DEFAULT  0
-#define ARP_REQUEST  1
-#define ARP_RESPINSE 2
+#define MAC_LEN              6  /* mac地址长度*/
+#define IP_LEN               4  /* ip地址长度*/
+#define ETHER_ARP_PACKET_LEN 42 /* arp包长度*/
+#define ETHER_HEADER_LEN     14 /* 以太网头部长度*/
 
 #pragma pack(push)
 #pragma pack(1) 
@@ -32,5 +28,6 @@ struct arp_packet{
 #pragma pack(pop)
 
 void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag);
+void set_time(unsigned int interval_ms);
 
 #endif
