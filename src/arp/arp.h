@@ -28,6 +28,7 @@ struct arp_packet{
 #pragma pack(pop)
 
 void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag);
+void arp_scan(char *deveice_name, char *target_ip);
 void set_time(unsigned int interval_ms);
 
 #endif

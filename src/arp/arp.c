@@ -117,32 +117,31 @@ void set_time(unsigned int interval_ms)
 /* 参  数：无 ***************************************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
-static void arp_receive()
+static void arp_receive(char *target_ip)
 {
-	int ret, cnt, i;
-	char buf[ETHER_ARP_PACKET_LEN + 1];
-	struct arp_packet *arp;
-	struct in_addr *ip;
+	int ret, cnt;
+	char buf[64];
+	struct arp_packet arp;
+	struct in_addr ip;
 	
-    arp = (struct arp_packet *)buf;
-    ip = (struct in_addr *)&(arp->ar_sip);
+	if(inet_aton(target_ip, &ip) == 0)
+    {
+		print_error("%s", "Invalid IP!");
+		return;
+	}
+
     cnt = 0;
 	while (1)
 	{
-		memset(buf, 0, sizeof(buf));
-		ret = recv(arp_recv_fd, buf, sizeof(buf), 0);
+		ret = recv(arp_recv_fd, &arp, sizeof(arp), 0);
 		if(ret > 0)
 		{
 			/* arp操作码为2代表arp应答 */
-			if(arp->ar_op == htons(0x2))
+			if(arp.ar_op == htons(0x2) && arp.ar_sip == ip.s_addr)
 			{
-				printf("==========================arp replay======================\n");
-				printf("from ip: %s\n", inet_ntoa(*ip));
-				
-				printf("from mac");
-				for (i = 0; i < MAC_LEN; i++)
-					printf(":%02x", arp->ar_sha[i]);
-				printf("\n");
+				sprintf(buf, "IP: %s  MAC: %02x-%02x-%02x-%02x-%02x-%02x", target_ip, 
+								arp.ar_sha[0], arp.ar_sha[1], arp.ar_sha[2], arp.ar_sha[3], arp.ar_sha[4], arp.ar_sha[5]);
+				printf("%s\n", buf);
 				return;
 			}
 			else
@@ -154,11 +153,10 @@ static void arp_receive()
 		{
 			cnt++;
 		}
-		if(cnt > 15)
+		if(cnt > 10)
 		{
 			
-			fprintf(stdout, "ARP receiver error\n");
-			signal(SIGINT, SIG_DFL);
+			print_error("%s", "Failed to get arp response");
 			return;
 		}
 	}
@@ -174,7 +172,7 @@ static void arp_receive()
 /*        times 发送的次数 **************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
-void arp_send(int times)
+static void arp_send(int times)
 {
 	int i, ret;
 	
@@ -268,6 +266,67 @@ void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag)
 			return;
 		}
 	}
+	
+	return;
+}
+
+/***************************************************************/
+/* 函  数：arp_scan *********************************************/
+/* 说  明：获得其他主机的mac ***************************************/
+/* 参  数：deveice_name 发送数据包的网卡设备 ************************/
+/*        target_ip 目标ip ************************************/
+/* 返回值：无 ***************************************************/
+/**************************************************************/
+void arp_scan(char *deveice_name, char *target_ip)
+{
+	int i;
+	struct in_addr inaddr_tmp;
+	struct ifreq ifr;
+	
+	arp_init(0);
+	arp_init(1);
+	
+	strncpy(ifr.ifr_name, deveice_name, sizeof(ifr.ifr_name) - 1);
+	if(ioctl(arp_send_fd, SIOCGIFINDEX, &ifr) < 0) 
+	{
+        print_errno("%s", "ioctl() SIOCGIFINDEX failed!");
+        return;
+    }
+    sl.sll_ifindex = ifr.ifr_ifindex;
+    
+    /* 转换目标IP */
+    if(inet_aton(target_ip, &inaddr_tmp) == 0)
+    {
+		print_error("%s", "Invalid IP!");
+		return;
+	}
+	memcpy(&arp_send_buf.ar_dip, &inaddr_tmp, sizeof(inaddr_tmp));
+	
+    /* 获取本机IP */
+	if(ioctl(arp_send_fd, SIOCGIFADDR, &ifr) < 0)
+	{
+        print_errno("%s", "ioctl() SIOCGIFADDR failed!");
+        return;
+    }
+    arp_send_buf.ar_sip = (((struct sockaddr_in*)&(ifr.ifr_addr))->sin_addr).s_addr;
+ 
+    /* 获取本机MAC */
+    if(ioctl(arp_send_fd, SIOCGIFHWADDR, &ifr) < 0)
+	{
+		print_errno("%s", "ioctl() SIOCGIFHWADDR failed!");
+		return;
+	}
+	for(i = 0; i < MAC_LEN; i++)
+	{
+		mac_local[i] = ifr.ifr_hwaddr.sa_data[i];
+	}
+	memcpy(arp_send_buf.eth_dst, mac_bcast, MAC_LEN);
+	memcpy(arp_send_buf.eth_src, mac_local, MAC_LEN);
+	memcpy(arp_send_buf.ar_sha, mac_local, MAC_LEN);
+	memset(arp_send_buf.ar_dha, 0, MAC_LEN);
+	
+	arp_send(1);
+	arp_receive(target_ip);
 	
 	return;
 }
