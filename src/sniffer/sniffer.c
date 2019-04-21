@@ -7,7 +7,9 @@
 #include <sys/types.h>
 #include <linux/if_ether.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
+#include "print.h"
 #include "ring_buffer.h"
 #include "write_pcap.h"
 #include "sniffer.h"
@@ -37,7 +39,7 @@ char sniffer_init()
 		if((sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0)
 		{
 			sock_exsit = 0;
-			fprintf(stdout, "Create socket error, please try to run as an administrator\n");
+			print_errno("%s", "Failed to create sniffer socket!");
 			return 1;
 		}
 		pcap_h.magic = 0xa1b2c3d4;
@@ -88,7 +90,7 @@ static void *thread_sniffer_write_pcap()
 			sprintf(file_name, "%s/%s--%d.pcap", file_name_tmp, file_name_tmp, pcap_num); /* 以这种格式命名pcap文件 */
 			if(create_pcap_file(file_name, pcap_h) != 0)
 			{
-				printf("Create %s failed!\n", file_name);
+				print_error("Create %s failed!", file_name);
 				continue;
 			}
 			pcap_num++;
@@ -98,7 +100,7 @@ static void *thread_sniffer_write_pcap()
 		fp = fopen(file_name, "a+");
 		if(fp == NULL)
 		{
-			printf("Open %s failed!\n", file_name);
+			print_error("Open %s failed!", file_name);
 			continue;
 		}
 		cnt = 0;
@@ -152,7 +154,7 @@ static void *thread_sniffer()
 		
 		if(n_read < 42) 
 		{
-			printf("Incomplete header, packet corrupt\n");
+			print_error("%s", "Incomplete header, packet corrupt!");
 			continue;
 		}
 		
@@ -191,7 +193,7 @@ void sniffer_start()
 		if(pthread_create(&sniffer_td, NULL, thread_sniffer, NULL) != 0)
 		{
 			sniffer_td_exist = 0;
-			printf("sniffer thread failed to start!\n");
+			print_error("%s", "Failed to start sniffer thread!");
 			return;
 		}
 	}
@@ -202,7 +204,7 @@ void sniffer_start()
 		if(pthread_create(&sniffer_write_pcap_td, NULL, thread_sniffer_write_pcap, NULL) != 0)
 		{
 			sniffer_write_pcap_td_exist = 0;
-			printf("Write_pcap thread failed to start!\n");
+			print_error("%s", "Failed to start write_pcap thread!");
 			return;
 		}
 	}

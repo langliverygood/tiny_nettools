@@ -14,8 +14,8 @@
 #include <signal.h>
 #include <pthread.h>
 
+#include "print.h"
 #include "arp.h"
-#include "print_errno.h"
 
 static int arp_send_fd;                                /* 发送arp请求的socket */           
 static int arp_recv_fd;                                /* 接收arp响应的socket */                     
@@ -62,7 +62,7 @@ static void arp_init(char flag)
 			if((arp_recv_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ARP))) < 0)
 			{
 				ar_rv_exit = 0;
-				fprintf(stdout, "ARP receiver's socket error!\n");
+				print_errno("%s", "Failed to create arp_receiver's socket!");
 				return;
 			}
 			tv_out.tv_sec = 1;
@@ -78,7 +78,7 @@ static void arp_init(char flag)
 			if((arp_send_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0)
 			{
 				ar_sd_exit = 0;
-				fprintf(stdout, "ARP sender's socket error!\n");
+				print_errno("%s", "Failed to create arp_sender's socket!");
 				return;
 			}
 			memset(&arp_send_buf, 0, sizeof(arp_send_buf));
@@ -156,6 +156,7 @@ static void arp_receive()
 		}
 		if(cnt > 15)
 		{
+			
 			fprintf(stdout, "ARP receiver error\n");
 			signal(SIGINT, SIG_DFL);
 			return;
@@ -180,14 +181,14 @@ void arp_send(int times)
 	for(i = 0; i < times; i++)
 	{
 		ret = sendto(arp_send_fd, &arp_send_buf, sizeof(arp_send_buf), 0, (struct sockaddr*)&sl, sizeof(sl));
-		if(ret == -1)
+		if(ret < 0)
 		{
-			printf("Send Error!\n");
+			print_errno("%s", "Arp packets send error!");
 			return;
 		}
 		else
 		{
-			printf("Arp sends %d bytes!\n", ret);
+			//printf("Arp sends %d bytes!\n", ret);
 		}
 	}
 	
@@ -214,20 +215,20 @@ void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag)
 	strncpy(ifr.ifr_name, deveice_name, sizeof(ifr.ifr_name) - 1);
 	if(ioctl(arp_send_fd, SIOCGIFINDEX, &ifr) < 0) 
 	{
-        print_errno("ioctl() SIOCGIFINDEX failed!\n");
+        print_errno("%s", "ioctl() SIOCGIFINDEX failed!");
         return;
     }
     sl.sll_ifindex = ifr.ifr_ifindex;
     
     if(inet_aton(trick_ip, &inaddr_tmp) == 0)
     {
-		printf("Invalid IP!\n");
+		print_error("%s", "Invalid IP!");
 		return;
 	}
 	memcpy(&arp_send_buf.ar_sip, &inaddr_tmp, sizeof(inaddr_tmp));
 	if(inet_aton(target_ip, &inaddr_tmp) == 0)
     {
-		printf("Invalid IP!\n");
+		print_error("%s", "Invalid IP!");
 		return;
 	}
 	memcpy(&arp_send_buf.ar_dip, &inaddr_tmp, sizeof(inaddr_tmp));
@@ -237,7 +238,7 @@ void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag)
 	{
 		if(ioctl(arp_send_fd, SIOCGIFHWADDR, &ifr) < 0)
 		{
-			printf("ioctl() SIOCGIFHWADDR failed! \n");
+			print_errno("%s", "ioctl() SIOCGIFHWADDR failed!");
 			return;
 		}
 		for(i = 0; i < MAC_LEN; i++)
