@@ -23,7 +23,7 @@ struct arp_packet{
 	unsigned int ar_sip;
 	unsigned char ar_dha[MAC_LEN];
 	unsigned int ar_dip;
-	unsigned char padding[18]; //填充
+	unsigned char padding[18]; /* 填充 */
 }arp_packet_s;
 #pragma pack(pop)
 

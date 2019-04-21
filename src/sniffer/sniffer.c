@@ -15,15 +15,15 @@
 static pthread_t sniffer_write_pcap_td, sniffer_td; /* 程标识符 */
 static char sniffer_write_pcap_td_exist;            /* 标记，写pcap文件线程是否存在 */
 static char sniffer_td_exist; 			            /* 标记，sniffer线程是否存在 */
-static int sock;                                    /* 标记，socket是否建立 */
-static char sock_exsit;
+static int sock;                                    /* 原始套接字 */
+static char sock_exsit;                             /* 标记，socket是否建立 */
 static ring_buffer_p rb_p;
-static char file_name[128];
+static char file_name[128];                         /* 新建的pcap文件名 */
 static struct pcap_file_header pcap_h;
 static struct packete_header packet_h;
 
 /***************************************************************/
-/**函  数：sniffer_init *****************************************/
+/* 函  数：sniffer_init *****************************************/
 /* 说  明：初始化 sniffer ****************************************/
 /* 参  数：无 ***************************************************/
 /* 返回值：0 初始化成功********************************************/
@@ -40,22 +40,21 @@ char sniffer_init()
 			fprintf(stdout, "Create socket error, please try to run as an administrator\n");
 			return 1;
 		}
+		pcap_h.magic = 0xa1b2c3d4;
+		pcap_h.version_major = 0x0200;
+		pcap_h.version_minor = 0x0400;
+		pcap_h.thiszone = 0x0;
+		pcap_h.sigfigs = 0x0;
+		pcap_h.snaplen = 0xffffffff;
+		pcap_h.linktype = 0x1;
 	}
-	
-	pcap_h.magic = 0xa1b2c3d4;
-	pcap_h.version_major = 0x0200;
-	pcap_h.version_minor = 0x0400;
-	pcap_h.thiszone = 0x0;
-	pcap_h.sigfigs = 0x0;
-	pcap_h.snaplen = 0xffffffff;
-	pcap_h.linktype = 0x1;
 	
 	return 0;
 }
 
 /***************************************************************/
-/**函  数：thread_sniffer_write_pcap ****************************/
-/* 说  明：该线程函数从ring_buffer中读出数据并写入pacp文件中 ****/
+/* 函  数：thread_sniffer_write_pcap ****************************/
+/* 说  明：该线程函数从ring_buffer中读出数据并写入pacp文件中 *********/
 /* 参  数：无 ***************************************************/
 /* 返回值：NULL *************************************************/
 /***************************************************************/
@@ -75,19 +74,18 @@ static void *thread_sniffer_write_pcap()
     pcap_num = PACP_MAX_NUM + 1;
     while(1)
     {
-		if(pcap_num >= PACP_MAX_NUM) // 保证每个文件夹最多有PACP_MAX_NUM个pcap文件
+		if(pcap_num >= PACP_MAX_NUM) /* 保证每个文件夹最多有PACP_MAX_NUM个pcap文件 */
 		{
 			pcap_num = 0;
 			packet_num = PACKET_MAX_NUM + 1;
-			memset(file_name_tmp, 0, sizeof(file_name_tmp));
 			secs = time(NULL);
 			tm1 = localtime(&secs);
-			strftime(file_name_tmp, sizeof(file_name_tmp), "%Y-%m-%d-%H-%M-%S", tm1);
+			strftime(file_name_tmp, sizeof(file_name_tmp), "%Y-%m-%d-%H-%M-%S", tm1); /* 以这种格式命名pcap文件 */
 		}
 		
-		if(packet_num >= PACKET_MAX_NUM) // 保证pcap文件最多有PACKET_MAX_NUM个包
+		if(packet_num >= PACKET_MAX_NUM) /* 证pcap文件最多有PACKET_MAX_NUM个包 */
 		{
-			sprintf(file_name, "%s/%s--%d.pcap", file_name_tmp, file_name_tmp, pcap_num);
+			sprintf(file_name, "%s/%s--%d.pcap", file_name_tmp, file_name_tmp, pcap_num); /* 以这种格式命名pcap文件 */
 			if(create_pcap_file(file_name, pcap_h) != 0)
 			{
 				printf("Create %s failed!\n", file_name);
@@ -118,7 +116,7 @@ static void *thread_sniffer_write_pcap()
 			{
 				cnt++;
 			}
-			if(cnt >= 5)// 若长期不可读，则该线程休眠1s
+			if(cnt >= 5) /* 若一段时间内不可读，则该线程休眠1s */
 			{
 				sleep(1);
 				cnt = 0;
@@ -131,7 +129,7 @@ static void *thread_sniffer_write_pcap()
 }
 
 /***************************************************************/
-/**函  数：thread_sniffer() *************************************/
+/* 函  数：thread_sniffer() *************************************/
 /* 说  明：该线程函数将sniffer捕捉的数据经过简单处理，写入ring_buffer */
 /* 参  数：无 ***************************************************/
 /* 返回值：NULL *************************************************/
@@ -160,14 +158,14 @@ static void *thread_sniffer()
 		
 		if(rb_can_write(rb_p))
 		{
-			write_ptr = get_write_address(rb_p); // 得到待写入的空间地址
+			write_ptr = get_write_address(rb_p); /* 得到待写入的空间地址 */
 			packet_h.timestamp_high = tv.tv_sec;
 			packet_h.timestamp_low = tv.tv_usec;
 			packet_h.caplen = n_read;
 			packet_h.len = n_read;
-			memcpy(write_ptr, &packet_h, sizeof(packet_h)); // 写入packet头部
-			memcpy(write_ptr + sizeof(packet_h), buffer, n_read); // 写入捕捉的数据包
-			rb_write_in(rb_p); // 移动写指针
+			memcpy(write_ptr, &packet_h, sizeof(packet_h));       /* 写入packet头部 */
+			memcpy(write_ptr + sizeof(packet_h), buffer, n_read); /* 写入捕捉的数据包 */
+			rb_write_in(rb_p);                                    /* 移动写指针 */
 		}
 	}
 	
@@ -175,7 +173,7 @@ static void *thread_sniffer()
 }
 
 /***************************************************************/
-/**函  数：sniffer_start() **************************************/
+/* 函  数：sniffer_start() **************************************/
 /* 说  明：启动sniffer，新建两个线程 *******************************/
 /* 参  数：无 ***************************************************/
 /* 返回值：无 ****************************************************/
@@ -216,7 +214,7 @@ void sniffer_start()
 }
 
 /***************************************************************/
-/**函  数：sniffer_stop() **************************************/
+/* 函  数：sniffer_stop() **************************************/
 /* 说  明：关闭sniffer，中止两个线程 *******************************/
 /* 参  数：无 ***************************************************/
 /* 返回值：无 ****************************************************/

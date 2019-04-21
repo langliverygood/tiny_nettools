@@ -270,4 +270,3 @@ void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag)
 	
 	return;
 }
-//arp wlp3s0 192.168.1.111 192.168.1.103
