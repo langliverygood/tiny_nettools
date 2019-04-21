@@ -23,7 +23,8 @@ static char ar_sd_exit;                                /* 标记,arp请求的soc
 static char ar_rv_exit;                                /* 标记,arp响应的socket是否建立 */
 static struct sockaddr_ll sl;                          /* 设备无关的物理层地址结构 */
 static struct arp_packet arp_send_buf;                 /* arp请求实体 */
-static int deceive_interval_ms = 1;                    /* 每次发送数据包的时间间隔 */
+static int deceive_interval_ms = 10;                   /* 每次发送欺骗数据包的时间间隔 */
+static int response_waittime_s = 10;                   /* 每次发送数据包的时间间隔 */
 static char flag_stop;                                 /* 停止发包的标志 */
 static char mac_bcast[MAC_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; /* 广播地址 */
 static char mac_trick[MAC_LEN] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06}; /* 伪装地址 */
@@ -94,19 +95,6 @@ static void arp_init(char flag)
 			sl.sll_protocol = htons(ETH_P_ALL);
 		}
 	}
-	
-	return;
-}
-
-/***************************************************************/
-/* 函  数：set_time *********************************************/
-/* 说  明：修改每次发包的时间间隔 **********************************/
-/* 参  数：毫秒 *************************************************/
-/* 返回值：无 ***************************************************/
-/**************************************************************/
-void set_time(unsigned int interval_ms)
-{
-	deceive_interval_ms = interval_ms;
 	
 	return;
 }
@@ -209,6 +197,12 @@ void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag)
 	struct in_addr inaddr_tmp;
 	struct ifreq ifr;
 	
+	if(trick_ip == NULL || target_ip == NULL)
+	{
+		print_error("%s", "Invalid IP!");
+		return;
+	}
+	
 	arp_init(1);
 	strncpy(ifr.ifr_name, deveice_name, sizeof(ifr.ifr_name) - 1);
 	if(ioctl(arp_send_fd, SIOCGIFINDEX, &ifr) < 0) 
@@ -274,7 +268,7 @@ void arp_deceive(char *deveice_name, char *trick_ip, char *target_ip, char flag)
 /* 函  数：arp_scan *********************************************/
 /* 说  明：获得其他主机的mac ***************************************/
 /* 参  数：deveice_name 发送数据包的网卡设备 ************************/
-/*        target_ip 目标ip ************************************/
+/*        target_ip 目标ip **************************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
 void arp_scan(char *deveice_name, char *target_ip)
@@ -327,6 +321,72 @@ void arp_scan(char *deveice_name, char *target_ip)
 	
 	arp_send(1);
 	arp_receive(target_ip);
+	
+	return;
+}
+
+/***************************************************************/
+/* 函  数：set_deceive_interval *********************************/
+/* 说  明：修改每次发包的时间间隔 **********************************/
+/* 参  数：毫秒 *************************************************/
+/* 返回值：无 ***************************************************/
+/**************************************************************/
+void set_deceive_interval(unsigned int interval_ms)
+{
+	deceive_interval_ms = interval_ms;
+	printf("Deceive_interval is set %ums!\n", interval_ms);
+	
+	return;
+}
+
+/***************************************************************/
+/* 函  数：set_scan_wait_time ***********************************/
+/* 说  明：修改接收请求等待时间 ************************************/
+/* 参  数：秒 *************************************************/
+/* 返回值：无 ***************************************************/
+/**************************************************************/
+void set_scan_wait_time(unsigned int wait_time_s)
+{
+	response_waittime_s = wait_time_s;
+	printf("Response_waittime is set %us!\n", wait_time_s);
+	
+	return;
+}
+
+/***************************************************************/
+/* 函  数：arp_reset ********************************************/
+/* 说  明：重置一些参数设置 ***************************************/
+/* 参  数：无 ***************************************************/
+/* 返回值：无 ***************************************************/
+/**************************************************************/
+void arp_reset()
+{
+	set_deceive_interval(10);
+	set_scan_wait_time(10);
+	
+	if(ar_sd_exit)
+	{
+		ar_sd_exit = 0;
+		close(arp_send_fd);
+	}
+	
+	if(ar_rv_exit)
+	{
+		ar_rv_exit = 0;
+		close(arp_recv_fd);
+	}
+	
+	return;
+}
+
+/***************************************************************/
+/* 函  数：arp_usage ********************************************/
+/* 说  明：介绍arp使用方法 ****************************************/
+/* 参  数：无 ***************************************************/
+/* 返回值：无 ***************************************************/
+/**************************************************************/
+void arp_usage()
+{
 	
 	return;
 }
