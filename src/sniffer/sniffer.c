@@ -255,6 +255,13 @@ void sniffer_stop()
 /**************************************************************/
 void sniffer_usage()
 {
+	printf("\n[Sniffer Usage]\n\n");
+	printf("--\"sniffer start\" :When you use this command, two new threads will be created. "
+	                               "One thread captures the data packet and the other writes the pcap file. " 
+	                                "The generated pcap file is in the same directory of the program. This function requires root privilege. "
+	                                "If you want to capture packets from other hosts in the same segment, set the network card to hybrid mode.\n\n");
+	printf("--\"sniffer stop\" :When you stop capturing packages, you must use this command to release system resources.\n\n");
+	printf("--\"sniffer help\" :Show this explanation.\n\n");
 	
 	return;
 }
