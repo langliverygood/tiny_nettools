@@ -387,6 +387,17 @@ void arp_reset()
 /**************************************************************/
 void arp_usage()
 {
+	printf("\n[Arp Usage]\n\n");
+	printf("--\"arp deceive [device_name] [trick_ip] [target_ip] (-t)\" :You can use this command to launch an ARP attack," 
+	    "and don't forget to specify a network card. If you use \"-t\", the attack will use your real mac.\n\n");
+	    
+	printf("--\"arp scan [device_name] [target_ip]\" :You can use this command to get another host's mac. and don't forget to specify a network card. \n\n");
+	printf("--\"arp set deintvl [n]\" :The interval between sending ARP deceiving will be set to n(ms).\n\n");
+	printf("--\"arp set rptime [n] \" :The waiting time for ARP requests will be set to n(s).\n\n");
+	printf("--\"arp reset\" :When you use this command, some parameters of ARP will be restored.\n\n");
+	
+	
+	printf("--\"arp help\":Show this explanation.\n\n");
 	
 	return;
 }
