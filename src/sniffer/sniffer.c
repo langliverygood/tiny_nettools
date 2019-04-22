@@ -26,7 +26,7 @@ static struct packete_header packet_h;
 
 /***************************************************************/
 /* 函  数：sniffer_init *****************************************/
-/* 说  明：初始化 sniffer ****************************************/
+/* 说  明：初始化sniffer,保证程序中只有一个sniffer ******************/
 /* 参  数：无 ***************************************************/
 /* 返回值：0 初始化成功********************************************/
 /*      ：1 初始化失败********************************************/
@@ -49,9 +49,10 @@ char sniffer_init()
 		pcap_h.sigfigs = 0x0;
 		pcap_h.snaplen = 0xffffffff;
 		pcap_h.linktype = 0x1;
+		return 0;
 	}
 	
-	return 0;
+	return 1;
 }
 
 /***************************************************************/
@@ -69,7 +70,6 @@ static void *thread_sniffer_write_pcap()
 	struct tm *tm1;
     time_t secs;
     
-    pthread_detach(pthread_self()); 						  /* 设置线程的分离状态 */
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);      /* 设置线程可被其他线程cansel */
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); /* 设置线程收到cansel信号时立刻退出 */
 
@@ -143,7 +143,6 @@ static void *thread_sniffer()
 	char *write_ptr;
 	struct timeval tv;
 
-	pthread_detach(pthread_self()); 						  /* 设置线程的分离状态 */
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);      /* 设置线程可被其他线程cansel */
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); /* 设置线程收到cansel信号时立刻退出 */
 	
@@ -233,6 +232,8 @@ void sniffer_stop()
 	}
 	sniffer_td_exist = 0;
 	sniffer_write_pcap_td_exist = 0;
+	
+	/* 释放ring_buffer */
 	if(rb_p != NULL)
 	{
 		rb_delete(&rb_p);
@@ -243,5 +244,17 @@ void sniffer_stop()
 		close(sock);
 	}
 		
+	return;
+}
+
+/***************************************************************/
+/* 函  数：sniffer_usage ****************************************/
+/* 说  明：介绍sniffer使用方法 ************************************/
+/* 参  数：无 ***************************************************/
+/* 返回值：无 ***************************************************/
+/**************************************************************/
+void sniffer_usage()
+{
+	
 	return;
 }
