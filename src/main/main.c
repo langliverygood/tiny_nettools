@@ -9,17 +9,18 @@
 #include "lshell.h"
 #include "sniffer.h"
 #include "arp.h"
+#include "icmp_ping.h"
 
 /***************************************************************/
 /* 函  数：str_to_uint ******************************************/
 /* 说  明：字符串转uint ******************************************/
 /* 参  数：str 字符串 ********************************************/
 /*        转换结果保存到n ****************************************/
-/*             非0 输出 ****************************************/
+/*             非0 输出 *****************************************/
 /* 返回值：0 成功*************************************************/
 /*        1 失败************************************************/
 /**************************************************************/
-static char str_to_uint(const char *str, unsigned int *n)
+static char str_to_long(const char *str, long int *n)
 {
 	long int val;
 	char *endptr;
@@ -34,8 +35,7 @@ static char str_to_uint(const char *str, unsigned int *n)
 	{
 	   return 1;
 	}
-	
-	*n = (int)val;
+	*n = val;
 	
 	return 0;
 }
@@ -112,27 +112,22 @@ void func_arp_scan(int argc, char **argv)
 /* arp set */
 void func_arp_set(int argc, char **argv)
 {
-	unsigned int n;
+	long int n;
 	
-	if(str_to_uint(argv[1], &n) == 0)
+	if(str_to_long(argv[1], &n) == 0)
 	{
 		if(strcmp(argv[0], "deintvl") == 0)
 		{
-			set_deceive_interval(n);
+			set_deceive_interval((unsigned int)n);
+			return;
 		}
 		else if(strcmp(argv[0], "rptime") == 0)
 		{
-			set_scan_wait_time(n);
-		}
-		else
-		{
-			arp_usage();
+			set_scan_wait_time((unsigned int)n);;
+			return;
 		}
 	}
-	else
-	{
-		arp_usage();
-	}
+	arp_usage();
 	
 	return;
 }
@@ -180,6 +175,80 @@ void func_sniffer_usage(int argc, char **argv)
 	return;
 }
 
+/* ping start */
+void func_start_ping(int argc, char **argv)
+{
+	long int n;
+	
+	if(argc < 1)
+	{
+		ping_usage();
+		return;
+	}
+	else if(argc == 2)
+	{
+		if(str_to_long(argv[1], &n) == 0)
+		{
+			if(n == -1)
+			{
+				ping(argv[0], -1);
+			}
+			else if(n == 0)
+			{
+				ping(argv[0], 0);
+			}
+			else
+			{
+				ping(argv[0], (int)n);
+			}
+		}
+		else
+		{
+			ping(argv[0], 0);
+		}
+	}
+	else
+	{
+		ping(argv[0], 0);
+	}
+	
+	return;
+}
+
+/* ping set times*/
+void func_ping_set(int argc, char **argv)
+{
+	long int n;
+	
+	if(str_to_long(argv[1], &n) == 0)
+	{
+		if(strcmp(argv[0], "times") == 0)
+		{
+			set_ping_times((unsigned int)n);
+			return;
+		}
+	}
+	arp_usage();
+	
+	return;
+}
+
+/* ping reset */
+void func_ping_reset(int argc, char **argv)
+{
+	ping_reset();
+	
+	return;
+}
+
+/* ping help */
+void func_ping_usage(int argc, char **argv)
+{
+	ping_usage();
+	
+	return;
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -198,11 +267,15 @@ int main(int argc, char **argv)
 	lshell_register(ret, "reset", "arp reset", func_arp_reset, RUN_AT_MAIN_THREAD, 0, 0, 0); 
 	lshell_register(ret, "help", "arp help", func_arp_usage, RUN_AT_MAIN_THREAD, 0, 0, 0); 
 	/* sniffer */
-	ret = lshell_register(-1, "sniffer", "sniffer", func_sniffer_usage, RUN_AT_NEW_THREAD, 0, 0, 0);
+	ret = lshell_register(-1, "sniffer", "sniffer", func_sniffer_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	lshell_register(ret, "start", "sniffer start", func_start_sniffer, RUN_AT_NEW_THREAD, 1, 0, 1);
 	lshell_register(ret, "stop", "sniffer stop", func_stop_sniffer, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	lshell_register(ret, "help", "sniffer help", func_sniffer_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	
+	/* ping */
+	ret = lshell_register(-1, "ping", "ping", func_start_ping, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	lshell_register(ret, "set", "set ping times", func_ping_set, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	lshell_register(ret, "reset", "ping reset", func_ping_reset, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	lshell_register(ret, "help", "ping help", func_ping_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	/* 启动lshell */
 	lshell_start();
 		
