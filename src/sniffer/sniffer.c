@@ -35,13 +35,12 @@ char sniffer_init()
 {
 	if(!sock_exsit)
 	{
-		sock_exsit = 1;
 		if((sock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0)
 		{
-			sock_exsit = 0;
 			print_errno("%s", "Failed to create sniffer socket!");
 			return 1;
 		}
+		sock_exsit = 1;
 		pcap_h.magic = 0xa1b2c3d4;
 		pcap_h.version_major = 0x0200;
 		pcap_h.version_minor = 0x0400;
