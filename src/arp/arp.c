@@ -59,13 +59,12 @@ static void arp_init(char flag)
 	{
 		if(!ar_rv_exit)
 		{
-			ar_rv_exit = 1;
 			if((arp_recv_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ARP))) < 0)
 			{
-				ar_rv_exit = 0;
 				print_errno("%s", "Failed to create arp_receiver's socket!");
 				return;
 			}
+			ar_rv_exit = 1;
 			tv_out.tv_sec = 1;
 			tv_out.tv_usec = 0;
 			setsockopt(arp_recv_fd, SOL_SOCKET, SO_RCVTIMEO, &tv_out, sizeof(tv_out)); /* recv超时时间为1s */
@@ -75,13 +74,12 @@ static void arp_init(char flag)
 	{
 		if(!ar_sd_exit)
 		{
-			ar_sd_exit = 1;
 			if((arp_send_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0)
 			{
-				ar_sd_exit = 0;
 				print_errno("%s", "Failed to create arp_sender's socket!");
 				return;
 			}
+			ar_sd_exit = 1;
 			memset(&arp_send_buf, 0, sizeof(arp_send_buf));
 			arp_send_buf.eth_type = htons(0x0806);
 			arp_send_buf.ar_hrd = htons(0x1);
