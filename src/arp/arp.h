@@ -1,10 +1,10 @@
 #ifndef _ARP_H_
 #define _ARP_H_
 
-#define MAC_LEN              6  /* mac地址长度*/
-#define IP_LEN               4  /* ip地址长度*/
-#define ETHER_ARP_PACKET_LEN 42 /* arp包长度*/
-#define ETHER_HEADER_LEN     14 /* 以太网头部长度*/
+#define MAC_LEN              6  /* mac地址长度 */
+#define IP_LEN               4  /* ip地址长度 */
+#define ETHER_ARP_PACKET_LEN 42 /* arp包长度 */
+#define ETHER_HEADER_LEN     14 /* 以太网头部长度 */
 
 #pragma pack(push)
 #pragma pack(1) 
@@ -59,7 +59,7 @@ void set_deceive_interval(unsigned int interval_ms);
 /***************************************************************/
 /* 函  数：set_scan_wait_time ***********************************/
 /* 说  明：修改接收请求等待时间 ************************************/
-/* 参  数：秒 *************************************************/
+/* 参  数：秒 ***************************************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
 void set_scan_wait_time(unsigned int wait_time_s);
