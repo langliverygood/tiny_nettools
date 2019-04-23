@@ -253,7 +253,7 @@ void ping(char *ip, int times)
 		ret = sendto(ping_sock_fd, request_pkt, sizeof(request_pkt), 0, (struct sockaddr *)&sender, sizeof(sender)); 
 		if(ret <= 0)
 		{
-			printf("Failed to send ping packet!\n"); 
+			print_errno("Failed to send ping packet!\n"); 
 			ping_clear();
 			return;
 		}  
@@ -267,7 +267,7 @@ void ping(char *ip, int times)
 		ret = recvfrom(ping_sock_fd, resonse_pkt, sizeof(resonse_pkt), 0, NULL, NULL);     
 		if(ret <= 0)
 		{
-			printf("Failed to receive ping packet!\n");
+			print_errno("Failed to receive ping packet!\n");
 			ping_clear();
 			return;
 		}
