@@ -306,8 +306,13 @@ void ping_reset()
 /* 参  数：times 次数 ********************************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
-void set_ping_times(unsigned int times)
+void set_ping_times(int times)
 {
+	if(times < 0)
+	{
+		printf("Patameter error!(%d)\n", times);
+		return;
+	}
 	ping_times = times;
 	printf("Default ping times was set to %d!\n", times);
 	
