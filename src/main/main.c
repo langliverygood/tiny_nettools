@@ -109,23 +109,30 @@ void func_arp_scan(int argc, char **argv)
 	return;
 }
 
-/* arp set */
-void func_arp_set(int argc, char **argv)
+/* arp set deintvl */
+void func_arp_set_deintvl(int argc, char **argv)
 {
 	long int n;
 	
-	if(str_to_long(argv[1], &n) == 0)
+	if(str_to_long(argv[0], &n) == 0)
 	{
-		if(strcmp(argv[0], "deintvl") == 0)
-		{
-			set_deceive_interval((unsigned int)n);
-			return;
-		}
-		else if(strcmp(argv[0], "rptime") == 0)
-		{
-			set_scan_wait_time((unsigned int)n);;
-			return;
-		}
+		set_deceive_interval((int)n);
+		return;
+	}
+	arp_usage();
+	
+	return;
+}
+
+/* arp set ptime */
+void func_arp_set_rptime(int argc, char **argv)
+{
+	long int n;
+	
+	if(str_to_long(argv[0], &n) == 0)
+	{
+		set_scan_wait_time((int)n);;
+		return;
 	}
 	arp_usage();
 	
@@ -220,19 +227,15 @@ void func_ping_set(int argc, char **argv)
 {
 	long int n;
 	
-	if(str_to_long(argv[1], &n) == 0)
+	if(str_to_long(argv[0], &n) == 0)
 	{
-		if(strcmp(argv[0], "times") == 0)
-		{
-			set_ping_times((unsigned int)n);
-			return;
-		}
+		set_ping_times((int)n);
+		return;
 	}
 	arp_usage();
 	
 	return;
 }
-
 /* ping reset */
 void func_ping_reset(int argc, char **argv)
 {
@@ -263,7 +266,8 @@ int main(int argc, char **argv)
 	ret = lshell_register(-1, "arp", "arp", func_arp_usage, RUN_AT_MAIN_THREAD, 0, 0, 0); 
 	lshell_register(ret, "scan", "arp scan", func_arp_scan, RUN_AT_MAIN_THREAD, 0, 0, 0); 
 	lshell_register(ret, "deceive", "arp deceive", func_arp_deceive, RUN_AT_MAIN_THREAD, 0, 0, 0); 
-	lshell_register(ret, "set", "arp set", func_arp_set, RUN_AT_MAIN_THREAD, 0, 0, 0); 
+	lshell_register(ret, "set deintvl", "arp set", func_arp_set_deintvl, RUN_AT_MAIN_THREAD, 0, 0, 0); 
+	lshell_register(ret, "set rptime", "arp set", func_arp_set_rptime, RUN_AT_MAIN_THREAD, 0, 0, 0); 
 	lshell_register(ret, "reset", "arp reset", func_arp_reset, RUN_AT_MAIN_THREAD, 0, 0, 0); 
 	lshell_register(ret, "help", "arp help", func_arp_usage, RUN_AT_MAIN_THREAD, 0, 0, 0); 
 	/* sniffer */
@@ -273,7 +277,7 @@ int main(int argc, char **argv)
 	lshell_register(ret, "help", "sniffer help", func_sniffer_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	/* ping */
 	ret = lshell_register(-1, "ping", "ping", func_start_ping, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "set", "set ping times", func_ping_set, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	lshell_register(ret, "set times", "set ping times", func_ping_set, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	lshell_register(ret, "reset", "ping reset", func_ping_reset, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	lshell_register(ret, "help", "ping help", func_ping_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	/* 启动lshell */
