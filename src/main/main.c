@@ -10,13 +10,13 @@
 #include "sniffer.h"
 #include "arp.h"
 #include "icmp_ping.h"
+#include "syn_attack.h"
 
 /***************************************************************/
 /* 函  数：str_to_uint ******************************************/
 /* 说  明：字符串转uint ******************************************/
 /* 参  数：str 字符串 ********************************************/
 /*        转换结果保存到n ****************************************/
-/*             非0 输出 *****************************************/
 /* 返回值：0 成功*************************************************/
 /*        1 失败************************************************/
 /**************************************************************/
@@ -252,6 +252,55 @@ void func_ping_usage(int argc, char **argv)
 	return;
 }
 
+/* syn attack */
+void func_syn_attack(int argc, char **argv)
+{
+	long int target_port;
+	long int local_port;
+	
+	if(argc == 3)
+	{
+		if(str_to_long(argv[1], &target_port) == 0 && str_to_long(argv[2], &local_port) == 0)
+		{
+			syn_attack(argv[0], (unsigned short)target_port, (unsigned short)local_port);
+			return;
+		}
+	}
+	syn_usage();
+	
+	return;
+}
+
+/* syn set interval*/
+void func_syn_set(int argc, char **argv)
+{
+	long int n;
+	
+	if(str_to_long(argv[0], &n) == 0)
+	{
+		set_syn_interval_ms((int)n);
+		return;
+	}
+	syn_usage();
+	
+	return;
+}
+/* syn reset */
+void func_syn_reset(int argc, char **argv)
+{
+	syn_reset();
+	
+	return;
+}
+
+/* syn help */
+void func_syn_usage(int argc, char **argv)
+{
+	syn_usage();
+	
+	return;
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -280,6 +329,11 @@ int main(int argc, char **argv)
 	lshell_register(ret, "set times", "set ping times", func_ping_set, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	lshell_register(ret, "reset", "ping reset", func_ping_reset, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	lshell_register(ret, "help", "ping help", func_ping_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	/* syn */
+	ret = lshell_register(-1, "syn", "syn attack", func_syn_attack, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	lshell_register(ret, "set intvl", "set syn interval", func_syn_set, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	lshell_register(ret, "reset", "syn reset", func_syn_reset, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	lshell_register(ret, "help", "syn help", func_syn_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
 	/* 启动lshell */
 	lshell_start();
 		
