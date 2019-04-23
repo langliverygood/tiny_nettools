@@ -329,8 +329,13 @@ void arp_scan(char *deveice_name, char *target_ip)
 /* 参  数：毫秒 *************************************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
-void set_deceive_interval(unsigned int interval_ms)
+void set_deceive_interval(int interval_ms)
 {
+	if(interval_ms < 0)
+	{
+		printf("Patameter error!(%d)\n", interval_ms);
+		return;
+	}
 	deceive_interval_ms = interval_ms;
 	printf("Deceive_interval is set %ums!\n", interval_ms);
 	
@@ -343,8 +348,13 @@ void set_deceive_interval(unsigned int interval_ms)
 /* 参  数：秒 ***************************************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
-void set_scan_wait_time(unsigned int wait_time_s)
+void set_scan_wait_time(int wait_time_s)
 {
+	if(wait_time_s < 0)
+	{
+		printf("Patameter error!(%d)\n", wait_time_s);
+		return;
+	}
 	response_waittime_s = wait_time_s;
 	printf("Response_waittime is set %us!\n", wait_time_s);
 	
