@@ -197,7 +197,7 @@ void syn_attack(char *target, unsigned short target_port, unsigned short local_p
 		host = gethostbyname(target);
 		if(host == NULL)
 		{ 
-			printf("gethostbyname fail!\n");
+			print_error("gethostbyname fail!\n");
 			return;
 		}
 		addr.sin_addr = *(struct in_addr*)(host->h_addr_list[0]);
