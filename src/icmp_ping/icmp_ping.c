@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <errno.h>
 #include <signal.h>
 
@@ -183,24 +184,31 @@ static void parse_packet(char *buff, int len)
 /***************************************************************/
 /* 函  数：ping *************************************************/
 /* 说  明：ping的主程序 ******************************************/
-/* 参  数：ip地址 ***********************************************/
+/* 参  数：target：ip，也可以是主机名或域名 *************************/
 /*      ：times = -1 一直请求 ***********************************/
 /*      ：times = 0 默认请求次数 *********************************/
 /*      ：times = 其他请他请求次数 ********************************/
 /* 返回值：无 ***************************************************/
 /**************************************************************/
-void ping(char *ip, int times)
+void ping(char *target, int times)
 {
     int ret, cnt, seq;
     struct sockaddr_in sender;
     struct in_addr inaddr_tmp;
     struct icmp *icmp;
-    
+    struct hostent* host; 
+	
     /* 参数检查 */
-    if(inet_aton(ip, &inaddr_tmp) == 0)
+    if(inet_aton(target, &inaddr_tmp) == 0)
     {
-		print_error("%s", "Invalid IP!");
-		return;
+        /* 获取IP地址的主机名，攻击使用第一个IP */
+        host = gethostbyname(target);
+        if(host == NULL)
+        { 
+			print_error("%s", "gethostbyname fail!\n");
+			return;
+		}
+		inaddr_tmp = *(struct in_addr*)(host->h_addr_list[0]);
 	}
 	
 	ping_init();
