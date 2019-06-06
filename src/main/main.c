@@ -310,30 +310,30 @@ int main(int argc, char **argv)
 	lshell_set_errmsg_swtich(0);
 	
 	/* 系统命令 */
-	lshell_register(-1, "ifconfig", "ifconfig", sys_ifconfig, RUN_AT_MAIN_THREAD, 0, 0, 0); 
+	lshell_register(-1, "ifconfig", "ifconfig", sys_ifconfig, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
 	/* arp */
-	ret = lshell_register(-1, "arp", "arp", func_arp_usage, RUN_AT_MAIN_THREAD, 0, 0, 0); 
-	lshell_register(ret, "scan", "arp scan", func_arp_scan, RUN_AT_MAIN_THREAD, 0, 0, 0); 
-	lshell_register(ret, "deceive", "arp deceive", func_arp_deceive, RUN_AT_MAIN_THREAD, 0, 0, 0); 
-	lshell_register(ret, "set deintvl", "arp set", func_arp_set_deintvl, RUN_AT_MAIN_THREAD, 0, 0, 0); 
-	lshell_register(ret, "set rptime", "arp set", func_arp_set_rptime, RUN_AT_MAIN_THREAD, 0, 0, 0); 
-	lshell_register(ret, "reset", "arp reset", func_arp_reset, RUN_AT_MAIN_THREAD, 0, 0, 0); 
-	lshell_register(ret, "help", "arp help", func_arp_usage, RUN_AT_MAIN_THREAD, 0, 0, 0); 
+	ret = lshell_register(-1, "arp", "arp", func_arp_usage, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
+	lshell_register(ret, "scan", "arp scan", func_arp_scan, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
+	lshell_register(ret, "deceive", "arp deceive", func_arp_deceive, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
+	lshell_register(ret, "set deintvl", "arp set", func_arp_set_deintvl, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
+	lshell_register(ret, "set rptime", "arp set", func_arp_set_rptime, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
+	lshell_register(ret, "reset", "arp reset", func_arp_reset, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
+	lshell_register(ret, "help", "arp help", func_arp_usage, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL); 
 	/* sniffer */
-	ret = lshell_register(-1, "sniffer", "sniffer", func_sniffer_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "start", "sniffer start", func_start_sniffer, RUN_AT_NEW_THREAD, 1, 0, 1);
-	lshell_register(ret, "stop", "sniffer stop", func_stop_sniffer, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "help", "sniffer help", func_sniffer_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	ret = lshell_register(-1, "sniffer", "sniffer", func_sniffer_usage, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "start", "sniffer start", func_start_sniffer, RUN_AT_NEW_THREAD, DETACHED, CANSEL_ENABLE, CANSEL_EXIT_NOW);
+	lshell_register(ret, "stop", "sniffer stop", func_stop_sniffer, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "help", "sniffer help", func_sniffer_usage, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
 	/* ping */
-	ret = lshell_register(-1, "ping", "ping", func_start_ping, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "set times", "set ping times", func_ping_set, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "reset", "ping reset", func_ping_reset, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "help", "ping help", func_ping_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	ret = lshell_register(-1, "ping", "ping", func_start_ping, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "set times", "set ping times", func_ping_set, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "reset", "ping reset", func_ping_reset, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "help", "ping help", func_ping_usage, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
 	/* syn */
-	ret = lshell_register(-1, "syn", "syn attack", func_syn_attack, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "set intvl", "set syn interval", func_syn_set, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "reset", "syn reset", func_syn_reset, RUN_AT_MAIN_THREAD, 0, 0, 0);
-	lshell_register(ret, "help", "syn help", func_syn_usage, RUN_AT_MAIN_THREAD, 0, 0, 0);
+	ret = lshell_register(-1, "syn", "syn attack", func_syn_attack, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "set intvl", "set syn interval", func_syn_set, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "reset", "syn reset", func_syn_reset, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
+	lshell_register(ret, "help", "syn help", func_syn_usage, RUN_AT_MAIN_THREAD, DEFAUL, DEFAUL, DEFAUL);
 	/* 启动lshell */
 	lshell_start();
 		
