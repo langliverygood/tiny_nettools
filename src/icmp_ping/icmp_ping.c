@@ -336,7 +336,7 @@ void set_ping_times(int times)
 void ping_usage()
 {
 	printf("\n[Ping Usage]\n\n");
-	printf("--\"Ping [ip] (n)\" :Ping requests will be sent n times！ " 
+	printf("--\"Ping [ip 、hostname or domain] (n)\" :Ping requests will be sent n times！ " 
 	    "When n = 0 or missing, ping requests will be sent default times！ "
 	    "When n = -1, ping requests will be always sent\n\n");
 	printf("--\"ping set times [n]\" :Default times of ping requests will be set to n.\n\n");
