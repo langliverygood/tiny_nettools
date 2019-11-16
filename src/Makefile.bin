@@ -29,7 +29,7 @@ all: $(DEPS)
 %.d : %.c
 	@set -e; rm -f $@; $(CC) -MM $< $(INCS) > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,$(TOP_DIR)/$(OBJ_DIR)/\1.o :,g' < $@.$$$$ > $@; \
-	echo "\t"$(CMD)" "$< >> $@; \
-	echo "\t@mv $(patsubst %.d, %.o,$@) $(TOP_DIR)/$(OBJ_DIR);\\" >> $@; \
+	echo -e "\t"$(CMD)" "$< >> $@; \
+	echo -e "\t@mv $(patsubst %.d, %.o,$@) $(TOP_DIR)/$(OBJ_DIR);\\" >> $@; \
 	$(MAKE) -f $@; \
 	rm -f $@ $@.$$$$
